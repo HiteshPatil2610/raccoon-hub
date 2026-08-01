@@ -1,0 +1,28 @@
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header__logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--accent);
+}
+
+.app-header nav a {
+  margin-left: 1.5rem;
+  color: var(--text-muted);
+}
+
+.app-header nav a:hover {
+  color: var(--text);
+}
+
+.app-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}

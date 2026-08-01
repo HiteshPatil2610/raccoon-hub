@@ -1,0 +1,42 @@
+.tag-editor__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  min-height: 2rem;
+}
+
+.tag-editor__empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.tag-editor__add {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tag-editor__add input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.tag-editor__add select {
+  padding: 0.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.tag-editor__add button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+}

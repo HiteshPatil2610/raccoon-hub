@@ -1,0 +1,81 @@
+:root {
+  --bg: #14161a;
+  --surface: #1c1f26;
+  --surface-hover: #242832;
+  --border: #2c313c;
+  --text: #e8e9ec;
+  --text-muted: #9aa0ac;
+  --accent: #e8a33d;
+  --accent-hover: #f0b656;
+  --success: #4caf7d;
+  --error: #e56666;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Shared tag chip style - used in TagChipEditor and ProductDetail */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.tag-chip--category {
+  border-color: #5b8def;
+  color: #5b8def;
+}
+
+.tag-chip--budget_tier {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tag-chip--spec {
+  border-color: #8a7ee8;
+  color: #8a7ee8;
+}
+
+.tag-chip--freeform {
+  border-color: var(--text-muted);
+  color: var(--text-muted);
+}
+
+.tag-chip button {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0;
+}

@@ -1,0 +1,41 @@
+# ============================================================
+# Backend (Python / FastAPI)
+# ============================================================
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/.pytest_cache/
+backend/*.egg-info/
+backend/alembic.ini.bak
+
+# Local SQLite DB files, if ever used for quick testing
+backend/*.db
+backend/*.sqlite3
+
+# ============================================================
+# Frontend (React / Vite)
+# ============================================================
+frontend/node_modules/
+frontend/.env
+frontend/dist/
+frontend/.vite/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# ============================================================
+# Editor / OS junk
+# ============================================================
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ============================================================
+# Anything explicitly marked local-only
+# ============================================================
+*.local

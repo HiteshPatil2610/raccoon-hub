@@ -1,0 +1,127 @@
+.admin-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.admin-login form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 280px;
+}
+
+.admin-login input {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.admin-login button {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #14161a;
+  font-weight: 600;
+}
+
+.admin-login__error {
+  color: var(--error);
+  font-size: 0.85rem;
+}
+
+.admin-panel__add-form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.admin-panel__add-form input {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.admin-panel__add-form button {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #14161a;
+  font-weight: 600;
+}
+
+.admin-panel__error {
+  color: var(--error);
+}
+
+.admin-panel__preview {
+  display: flex;
+  gap: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.admin-panel__preview img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.admin-panel__preview-info {
+  flex: 1;
+}
+
+.admin-panel__confirm {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--success);
+  color: #0e1512;
+  font-weight: 600;
+}
+
+.admin-panel__save-status {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+}
+
+.admin-panel__list {
+  margin-top: 2.5rem;
+}
+
+.admin-panel__list table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.admin-panel__list th,
+.admin-panel__list td {
+  text-align: left;
+  padding: 0.6rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.admin-panel__delete {
+  color: var(--error);
+  background: none;
+  border: 1px solid var(--error);
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+}
