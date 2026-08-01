@@ -26,6 +26,8 @@ router = APIRouter(tags=["public"])
 def list_products(
     tag: Optional[str] = Query(None, description="Filter by tag name, e.g. 'gaming-mouse'"),
     category: Optional[str] = Query(None, description="Filter by category"),
+    limit: int = Query(24, ge=1, le=100, description="Max products to return"),
+    offset: int = Query(0, ge=0, description="Number of products to skip"),
     db: Session = Depends(get_db),
 ):
     """
@@ -40,7 +42,7 @@ def list_products(
     if tag:
         query = query.join(Product.tags).filter(Tag.name == tag)
 
-    return query.order_by(Product.created_at.desc()).all()
+    return query.order_by(Product.created_at.desc()).offset(offset).limit(limit).all()
 
 
 @router.get("/products/{asin}", response_model=ProductDetailOut)

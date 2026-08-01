@@ -10,6 +10,7 @@ Password-protected admin routes:
 """
 
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -36,6 +37,13 @@ from app.tag_extractor import extract_tags
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
+def _parse_product_id(product_id: str) -> UUID:
+    try:
+        return UUID(product_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Product not found.")
+
+
 # ------------------------------------------------------------------
 # Auth
 # ------------------------------------------------------------------
@@ -59,7 +67,18 @@ def admin_logout(request: Request, _admin=Depends(require_admin)):
 def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin)):
     asin = extract_asin(payload.url)
     if not asin:
-        raise HTTPException(status_code=400, detail="Could not extract an ASIN from that link.")
+        hint = (
+            " This looks like a shortened Amazon link that couldn't be resolved "
+            "automatically (Amazon sometimes blocks this). Open the link in your "
+            "browser, copy the full product URL from the address bar (containing "
+            "/dp/...), and paste that instead."
+            if "amzn.in" in payload.url or "amzn.to" in payload.url or "a.co" in payload.url
+            else ""
+        )
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not extract an ASIN from that link.{hint}",
+        )
 
     data = get_provider().fetch_product(asin)
     if data is None or not data.fetch_succeeded:
@@ -161,7 +180,7 @@ def update_product(
     db: Session = Depends(get_db),
     _admin=Depends(require_admin),
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(Product.id == _parse_product_id(product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found.")
 
@@ -177,7 +196,7 @@ def update_product(
 
 @router.delete("/products/{product_id}")
 def delete_product(product_id: str, db: Session = Depends(get_db), _admin=Depends(require_admin)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(Product.id == _parse_product_id(product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found.")
     db.delete(product)

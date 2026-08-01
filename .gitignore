@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ============================================================
 # Backend (Python / FastAPI)
 # ============================================================
@@ -40,7 +39,6 @@ Thumbs.db
 # Anything explicitly marked local-only
 # ============================================================
 *.local
-=======
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -259,4 +257,3 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
->>>>>>> 7bbdfc1a2b2ade888f51f370387cf7fb3fedd857
