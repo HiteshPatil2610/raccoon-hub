@@ -1,15 +1,17 @@
 :root {
-  --bg: #14161a;
-  --surface: #1c1f26;
-  --surface-hover: #242832;
-  --border: #2c313c;
+  --bg: #0a0a0a;
+  --surface: #18191c;
+  --surface-hover: #202226;
+  --border: rgba(255, 255, 255, 0.1);
   --text: #e8e9ec;
   --text-muted: #9aa0ac;
-  --accent: #e8a33d;
-  --accent-hover: #f0b656;
+  --accent: #34d399;
+  --accent-hover: #10b981;
+  --accent-soft: rgba(16, 185, 129, 0.15);
   --success: #4caf7d;
   --error: #e56666;
   --radius: 10px;
+  --radius-lg: 28px;
 }
 
 * {

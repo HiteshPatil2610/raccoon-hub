@@ -1,3 +1,6 @@
+import { Star } from 'lucide-react'
+import './StarRating.css'
+
 /**
  * Renders nothing if no rating is present - which is always true right
  * now, since neither PA-API nor Creators API expose star ratings. This
@@ -12,7 +15,12 @@ export default function StarRating({ rating, count }) {
 
   return (
     <div className="star-rating" aria-label={`${rating} out of 5 stars`}>
-      <span>{'★'.repeat(full)}{'☆'.repeat(5 - full)}</span>
+      <span className="star-rating__stars">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star key={i} className={`star-rating__icon ${i < full ? 'is-filled' : ''}`} />
+        ))}
+      </span>
+      <span className="star-rating__value">{rating}</span>
       {count != null && <span className="star-rating__count">({count})</span>}
     </div>
   )
