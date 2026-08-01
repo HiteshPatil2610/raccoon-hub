@@ -19,11 +19,12 @@ from app.routers import admin, public
 app = FastAPI(title="Raccoon Hub API", version="0.1.0")
 
 # Session cookie middleware - powers the admin login (see app/auth.py).
+# See config.py for why SameSite/Secure differ between local dev and production.
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SESSION_SECRET_KEY,
-    same_site="lax",
-    https_only=False,  # Render serves HTTPS in production; set True once deployed if desired
+    same_site=settings.SESSION_COOKIE_SAMESITE,
+    https_only=settings.SESSION_COOKIE_SECURE,
 )
 
 # CORS - only the frontend origins listed in ALLOWED_ORIGINS may call this

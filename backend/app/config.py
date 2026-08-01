@@ -44,6 +44,15 @@ class Settings(BaseSettings):
     # "http://localhost:5173,https://your-frontend.onrender.com"
     ALLOWED_ORIGINS: str = "http://localhost:5173"
 
+    # --- Session cookie ---
+    # Local dev (http://localhost): keep the defaults below (lax/False).
+    # Production (frontend and backend on different Render subdomains -
+    # a cross-site setup from the browser's perspective): set
+    # SESSION_COOKIE_SAMESITE=none and SESSION_COOKIE_SECURE=true, or the
+    # admin session cookie will silently fail to be sent on API calls.
+    SESSION_COOKIE_SAMESITE: str = "lax"
+    SESSION_COOKIE_SECURE: bool = False
+
     @property
     def allowed_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
