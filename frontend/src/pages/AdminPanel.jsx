@@ -4,7 +4,7 @@ import TagChipEditor from '../components/TagChipEditor.jsx'
 import './AdminPanel.css'
 
 export default function AdminPanel() {
-  const [authed, setAuthed] = useState(false)
+  const [authed, setAuthed] = useState(() => api.isLoggedIn())
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
 
@@ -18,7 +18,10 @@ export default function AdminPanel() {
   const [products, setProducts] = useState([])
 
   const refreshProducts = () => {
-    api.listAdminProducts().then(setProducts).catch(() => {})
+    api
+      .listAdminProducts()
+      .then(setProducts)
+      .catch(() => setAuthed(api.isLoggedIn())) // token may have just been cleared by a 401
   }
 
   useEffect(() => {
@@ -48,6 +51,7 @@ export default function AdminPanel() {
       setTags(result.suggested_tags)
     } catch (err) {
       setPreviewError(err.message)
+      setAuthed(api.isLoggedIn())
     } finally {
       setPreviewLoading(false)
     }
@@ -65,6 +69,7 @@ export default function AdminPanel() {
       refreshProducts()
     } catch (err) {
       setSaveStatus(`Error: ${err.message}`)
+      setAuthed(api.isLoggedIn())
     }
   }
 

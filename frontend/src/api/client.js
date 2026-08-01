@@ -1,18 +1,40 @@
 /**
  * api/client.js
  * ------------------------------------------------------------------
- * Thin fetch wrapper around the backend API. `credentials: 'include'`
- * is required on every call so the admin session cookie is sent -
- * without it, /admin/* routes will always 401 even after logging in.
+ * Thin fetch wrapper around the backend API. Admin auth is a Bearer
+ * token stored in localStorage and attached to every request via the
+ * Authorization header - not a cookie. This was a deliberate switch
+ * away from cookie-based sessions, since the frontend and backend
+ * live on different subdomains in production and modern browsers
+ * increasingly block third-party cookies in that exact cross-site
+ * setup (Safari ITP by default, Chrome moving the same direction).
  * ------------------------------------------------------------------
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+const TOKEN_STORAGE_KEY = 'raccoon_hub_admin_token'
+
+function getToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY)
+}
+
+function setToken(token) {
+  if (token) {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token)
+  } else {
+    localStorage.removeItem(TOKEN_STORAGE_KEY)
+  }
+}
 
 async function request(path, options = {}) {
+  const token = getToken()
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    headers,
     ...options,
   })
 
@@ -24,6 +46,11 @@ async function request(path, options = {}) {
     } catch {
       // response wasn't JSON - keep statusText
     }
+    // A 401 always means "not currently authenticated" - clear any stale
+    // token so the UI can fall back to the login screen cleanly.
+    if (res.status === 401) {
+      setToken(null)
+    }
     throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail))
   }
 
@@ -33,9 +60,18 @@ async function request(path, options = {}) {
 
 export const api = {
   // --- Admin ---
-  login: (password) =>
-    request('/admin/login', { method: 'POST', body: JSON.stringify({ password }) }),
-  logout: () => request('/admin/logout', { method: 'POST' }),
+  login: async (password) => {
+    const result = await request('/admin/login', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    })
+    setToken(result.token)
+    return result
+  },
+  logout: () => {
+    setToken(null)
+  },
+  isLoggedIn: () => Boolean(getToken()),
   previewProduct: (url) =>
     request('/admin/products/preview', { method: 'POST', body: JSON.stringify({ url }) }),
   confirmProduct: (product, final_tags) =>

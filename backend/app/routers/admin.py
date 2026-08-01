@@ -12,13 +12,11 @@ Password-protected admin routes:
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.asin_utils import extract_asin
-from app.auth import login as auth_login
-from app.auth import logout as auth_logout
-from app.auth import require_admin
+from app.auth import issue_token, require_admin, verify_password
 from app.database import get_db
 from app.models import Product, Tag
 from app.providers import get_provider
@@ -48,15 +46,17 @@ def _parse_product_id(product_id: str) -> UUID:
 # Auth
 # ------------------------------------------------------------------
 @router.post("/login")
-def admin_login(payload: LoginRequest, request: Request):
-    if not auth_login(request, payload.password):
+def admin_login(payload: LoginRequest):
+    if not verify_password(payload.password):
         raise HTTPException(status_code=401, detail="Incorrect password.")
-    return {"status": "ok"}
+    return {"token": issue_token()}
 
 
 @router.post("/logout")
-def admin_logout(request: Request, _admin=Depends(require_admin)):
-    auth_logout(request)
+def admin_logout(_admin=Depends(require_admin)):
+    # Tokens are stateless (signed, not stored server-side), so there's
+    # nothing to invalidate here - the frontend just discards its copy.
+    # Kept as a route for symmetry and in case a blocklist is added later.
     return {"status": "ok"}
 
 
