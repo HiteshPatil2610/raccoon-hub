@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LayoutGroup } from 'motion/react'
 import ProductCard from '../components/ProductCard.jsx'
 import { api } from '../api/client.js'
 import './Home.css'
@@ -9,6 +10,7 @@ export default function Home() {
   const [activeTag, setActiveTag] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [expandedAsin, setExpandedAsin] = useState(null)
 
   useEffect(() => {
     api.listTags().then(setTags).catch(() => {})
@@ -24,6 +26,10 @@ export default function Home() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
   }, [activeTag])
+
+  const toggleExpand = (asin) => {
+    setExpandedAsin((prev) => (prev === asin ? null : asin))
+  }
 
   return (
     <div className="home">
@@ -55,11 +61,18 @@ export default function Home() {
         <p className="home__status">No products yet. Check back soon.</p>
       )}
 
-      <div className="home__grid">
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
-      </div>
+      <LayoutGroup>
+        <div className="home__grid">
+          {products.map((p) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              isExpanded={expandedAsin === p.asin}
+              onToggleExpand={() => toggleExpand(p.asin)}
+            />
+          ))}
+        </div>
+      </LayoutGroup>
     </div>
   )
 }
