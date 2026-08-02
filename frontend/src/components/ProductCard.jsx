@@ -79,7 +79,7 @@ export default function ProductCard({ product, isExpanded, onToggleExpand }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={{ duration: 0.25, delay: 0.15, ease: 'easeOut' }}
             className="product-card__expanded"
           >
             <div className="product-card__expanded-header">
@@ -158,7 +158,7 @@ export default function ProductCard({ product, isExpanded, onToggleExpand }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={{ duration: 0.25, delay: 0.15, ease: 'easeOut' }}
             className="product-card__collapsed"
           >
             <div className="product-card__burst-anchor">
