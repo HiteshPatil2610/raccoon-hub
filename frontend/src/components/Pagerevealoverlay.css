@@ -1,0 +1,40 @@
+.page-reveal {
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  grid-template-columns: repeat(25, 1fr);
+  grid-template-rows: repeat(13, 1fr);
+  /* No gap property at all, and tiles below have no border/box-shadow -
+     this is what makes them read as one seamless solid plane initially. */
+  pointer-events: auto;
+}
+
+.page-reveal.is-revealed {
+  /* Let clicks reach the real page as soon as tiles start peeling away,
+     rather than waiting for the full unmount. */
+  pointer-events: none;
+}
+
+.page-reveal__tile {
+  width: calc(100% + 1px);
+  height: calc(100% + 1px);
+  margin-left: -0.5px;
+  margin-top: -0.5px;
+  box-sizing:border-box;
+  /* Same color as the site's actual background, so the covered state
+     looks like a flat, uniform screen rather than an obvious overlay. */
+  background: #ffffff;
+  transform: scale(1);
+  opacity: 1;
+  transition-property: transform, opacity;
+  transition-duration: 0.5s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.page-reveal.is-revealed .page-reveal__tile {
+  transform: scale(0.05);
+  opacity: 0;
+}
