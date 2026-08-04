@@ -59,6 +59,7 @@ class ProductPreviewData(BaseModel):
     image_variants: List[str] = []
     features: List[str] = []
     category: Optional[str] = None
+    ai_blurb: Optional[str] = None
 
 
 class ProductPreviewResponse(BaseModel):
@@ -97,6 +98,7 @@ class ProductOut(BaseModel):
     image_variants: List[str] = []
     features: List[str] = []
     category: Optional[str] = None
+    ai_blurb: Optional[str] = None
     is_active: bool
     tags: List[TagOut] = []
 

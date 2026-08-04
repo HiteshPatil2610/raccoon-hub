@@ -56,6 +56,8 @@ export default function ProductDetail() {
             </div>
           )}
 
+          {product.ai_blurb && <p className="product-detail__blurb">{product.ai_blurb}</p>}
+
           {product.features?.length > 0 && (
             <ul className="product-detail__features">
               {product.features.map((f, i) => (

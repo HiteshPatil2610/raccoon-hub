@@ -15,6 +15,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.ai_client import generate_product_blurb
 from app.asin_utils import extract_asin
 from app.auth import issue_token, require_admin, verify_password
 from app.database import get_db
@@ -89,6 +90,7 @@ def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin
 
     suggested = extract_tags(data.title, data.features, data.price_amount)
     category = next((t.name for t in suggested if t.tag_type == "category"), None)
+    ai_blurb = generate_product_blurb(data.title, data.features)
 
     product_data = ProductPreviewData(
         asin=data.asin,
@@ -104,6 +106,7 @@ def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin
         image_variants=data.image_variants,
         features=data.features,
         category=category,
+        ai_blurb=ai_blurb,
     )
 
     return ProductPreviewResponse(
@@ -148,6 +151,7 @@ def confirm_product(
         image_variants=payload.product.image_variants,
         features=payload.product.features,
         category=payload.product.category,
+        ai_blurb=payload.product.ai_blurb,
     )
 
     seen_tag_names = set()

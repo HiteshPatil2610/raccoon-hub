@@ -134,6 +134,8 @@ export default function ProductCard({ product, isExpanded, onToggleExpand }) {
                   </div>
                 )}
 
+                {product.ai_blurb && <p className="product-card__blurb">{product.ai_blurb}</p>}
+
                 {product.features?.length > 0 && (
                   <ul className="product-card__features">
                     {product.features.map((f, i) => (

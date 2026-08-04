@@ -1,41 +1,443 @@
-.page-reveal {
+.product-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: rgba(24, 25, 28, 0.96);
+  border: 1px solid var(--border);
   overflow: hidden;
-  position: fixed;
+  isolation: isolate;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:not(.is-expanded):hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.product-card.is-shrinking {
+  z-index: 40;
+}
+
+.product-card.is-expanded {
+  cursor: default;
+  z-index: 50;
+  grid-column: span 1;
+  grid-row: span 2;
+  min-height: 700px;
+}
+
+@media (min-width: 640px) {
+  .product-card.is-expanded {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-card.is-expanded {
+    grid-column: span 3;
+  }
+}
+
+/* Subtle top-light sheen. A static gradient, not animated - cheap. */
+.product-card__sheen {
+  position: absolute;
   inset: 0;
-  z-index: 9999;
-  display: grid;
-  grid-template-columns: repeat(25, 1fr);
-  /* grid-template-rows is set inline per-instance (JS-computed row count) */
-  pointer-events: auto;
-}
-
-.page-reveal.is-revealed {
+  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.06), transparent 55%);
   pointer-events: none;
+  z-index: 2;
+  border-radius: var(--radius-lg);
 }
 
-.page-reveal__tile {
-  width: calc(100% + 1px);
-  height: calc(100% + 1px);
-  margin-left: -0.5px;
-  margin-top: -0.5px;
-  box-sizing: border-box;
-  /* Semi-transparent (not solid opaque) so the tile visibly darkens as
-     it fades over the dark gradient beneath - this is what makes the
-     shrink read as smooth/organic rather than a flat pop-out. Also
-     gives a subtle inset border for the "graph paper" grid-line look,
-     via box-shadow (not a real border) so it doesn't affect box sizing
-     or introduce any actual gap between tiles. */
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.07);
+/* ============================================================
+   COLLAPSED STATE
+   ============================================================ */
+.product-card__collapsed {
+  position: relative;
+  width: 100%;
+  height: 340px;
+}
+
+/* Image is always full-bleed - nothing about its size/position ever
+   animates, only its own transform (scale) on hover, which is GPU
+   composited and cheap. This avoids layout-triggering transitions
+   entirely (no inset/padding animation). */
+.product-card__image-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #fff;
+  z-index: 0;
+}
+
+.product-card__image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1.1rem;
   transform: scale(1);
-  opacity: 1;
-  transition-property: transform, opacity;
-  transition-duration: 0.6s;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
 }
 
-.page-reveal.is-revealed .page-reveal__tile {
-  transform: scale(0.05);
+.product-card__collapsed:hover .product-card__image-wrap img {
+  transform: scale(1.035);
+}
+
+.product-card__image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Gradient + blur reveal panel - only opacity animates (cheap). Blur is
+   modest (8px, not 20px) and only meaningfully costs anything while
+   visible on hover, not permanently like before. */
+.product-card__overlay {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 180px;
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.94) 0%, rgba(10, 10, 10, 0.7) 60%, transparent 100%);
+  backdrop-filter: blur(8px);
   opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.product-card__collapsed:hover .product-card__overlay {
+  opacity: 1;
+}
+
+.product-card__info {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-card__top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.product-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.product-card__price {
+  flex-shrink: 0;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--accent);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.product-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.product-card__collapsed:hover .product-card__meta {
+  opacity: 1;
+}
+
+.product-card__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.product-card__rating-icon {
+  width: 12px;
+  height: 12px;
+  fill: #fbbf24;
+  color: #fbbf24;
+}
+
+.product-card__category {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.68rem;
+}
+
+.product-card__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.product-card__collapsed:hover .product-card__hint {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.product-card__hint-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Favorite (heart) button */
+.product-card__like {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 5;
+  background: none;
+  border: none;
+  padding: 0.35rem;
+  cursor: pointer;
+  display: flex;
+  transition: transform 0.15s ease;
+}
+
+.product-card__like:hover {
+  transform: scale(1.12);
+}
+
+.product-card__like:active {
+  transform: scale(0.88);
+}
+
+.product-card__like-icon {
+  width: 21px;
+  height: 21px;
+  color: #f4f4f5;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
+  transition: fill 0.2s ease, color 0.2s ease;
+}
+
+.product-card__like-icon.is-liked {
+  fill: #f43f5e;
+  color: #f43f5e;
+  filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.7));
+}
+
+/* Toned-down like burst - a soft ring pulse, not a large blurred blob */
+.product-card__burst-anchor {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 21px;
+  height: 21px;
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.product-card__burst {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(244, 63, 94, 0.55) 0%, transparent 70%);
+  animation: product-card-burst 0.5s ease-out forwards;
+}
+
+@keyframes product-card-burst {
+  from {
+    opacity: 1;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+/* ============================================================
+   EXPANDED STATE
+   ============================================================ */
+.product-card__expanded {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card__expanded-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.product-card__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.product-card__breadcrumb-current {
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.product-card__breadcrumb-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.product-card__close {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.product-card__close:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.product-card__close-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.product-card__expanded-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+@media (min-width: 640px) {
+  .product-card__expanded-body {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.product-card__expanded-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 0.25rem;
+  line-height: 1.25;
+}
+
+.product-card__expanded-price {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent);
+  font-family: ui-monospace, 'SF Mono', monospace;
+  margin: 0.4rem 0;
+}
+
+.product-card__availability {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  margin-bottom: 0.9rem;
+}
+
+.product-card__availability--in {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--accent);
+}
+
+.product-card__availability--out {
+  background: rgba(229, 102, 102, 0.15);
+  color: var(--error);
+}
+
+.product-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.product-card__blurb {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin: 0 0 0.9rem;
+}
+
+.product-card__features {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  padding-left: 1.1rem;
+  margin: 0 0 1.25rem;
+}
+
+.product-card__expanded-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.product-card__expanded-actions .buy-button {
+  margin-top: 0;
+}
+
+.product-card__full-page-link {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.product-card__full-page-link:hover {
+  color: var(--accent);
 }

@@ -6,7 +6,7 @@ ORM models: Product, Tag, and the product_tags join table.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
@@ -28,10 +28,6 @@ from app.database import Base
 
 def _uuid() -> uuid.UUID:
     return uuid.uuid4()
-
-
-def _now_utc() -> datetime:
-    return datetime.now(timezone.utc)
 
 
 # Many-to-many join table between products and tags
@@ -64,10 +60,11 @@ class Product(Base):
     features = Column(JSONB, default=list)          # list[str] bullet points
 
     category = Column(String(100), nullable=True)   # primary category, mirrored as a tag too
+    ai_blurb = Column(Text, nullable=True)           # AI-generated description (Gemini) - see ai_client.py
     is_active = Column(Boolean, default=True)
 
-    last_fetched_at = Column(DateTime, default=_now_utc)
-    created_at = Column(DateTime, default=_now_utc)
+    last_fetched_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     tags = relationship("Tag", secondary=product_tags, back_populates="products")
 

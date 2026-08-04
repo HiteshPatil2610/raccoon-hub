@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str
     SESSION_SECRET_KEY: str  # random long string, used to sign the session cookie
 
+    # --- Gemini API (AI features: blurbs, embeddings for search/recs) ---
+    # Free tier, no credit card required - get a key at aistudio.google.com.
+    # Optional so the app still runs fine before you've set this up; AI
+    # features just silently no-op (return None) until it's configured.
+    GEMINI_API_KEY: str | None = None
+
     # --- CORS ---
     # Comma-separated list of allowed frontend origins, e.g.
     # "http://localhost:5173,https://your-frontend.onrender.com"

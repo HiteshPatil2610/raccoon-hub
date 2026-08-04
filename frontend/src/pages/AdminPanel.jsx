@@ -130,6 +130,9 @@ export default function AdminPanel() {
               <p>
                 {preview.product.price_display} &middot; {preview.product.availability}
               </p>
+              {preview.product.ai_blurb && (
+                <p className="admin-panel__blurb">✨ {preview.product.ai_blurb}</p>
+              )}
               <TagChipEditor tags={tags} onChange={setTags} />
               <button className="admin-panel__confirm" onClick={handleConfirm}>
                 Confirm &amp; Add Product

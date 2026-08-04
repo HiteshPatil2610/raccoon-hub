@@ -85,6 +85,14 @@
   flex: 1;
 }
 
+.admin-panel__blurb {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-style: italic;
+  line-height: 1.5;
+  margin: 0.5rem 0;
+}
+
 .admin-panel__confirm {
   margin-top: 1rem;
   padding: 0.6rem 1.2rem;
