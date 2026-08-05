@@ -5,15 +5,11 @@
   z-index: 9999;
   display: grid;
   grid-template-columns: repeat(25, 1fr);
-  grid-template-rows: repeat(13, 1fr);
-  /* No gap property at all, and tiles below have no border/box-shadow -
-     this is what makes them read as one seamless solid plane initially. */
+  /* grid-template-rows is set inline from the dynamic row count. */
   pointer-events: auto;
 }
 
 .page-reveal.is-revealed {
-  /* Let clicks reach the real page as soon as tiles start peeling away,
-     rather than waiting for the full unmount. */
   pointer-events: none;
 }
 
@@ -22,19 +18,20 @@
   height: calc(100% + 1px);
   margin-left: -0.5px;
   margin-top: -0.5px;
-  box-sizing:border-box;
-  /* Same color as the site's actual background, so the covered state
-     looks like a flat, uniform screen rather than an obvious overlay. */
+  box-sizing: border-box;
   background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.07);
   transform: scale(1);
   opacity: 1;
-  transition-property: transform, opacity;
-  transition-duration: 0.5s;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
+  transition-property: transform, opacity, background-color, border-color;
+  transition-duration: 0.8s;
+  transition-timing-function: cubic-bezier(0.32, 0, 0.67, 0);
+  will-change: transform, opacity, background-color, border-color;
 }
 
 .page-reveal.is-revealed .page-reveal__tile {
   transform: scale(0.05);
   opacity: 0;
+  background-color: rgba(255, 255, 255, 0);
+  border-color: rgba(0, 0, 0, 0);
 }

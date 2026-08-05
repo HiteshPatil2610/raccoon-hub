@@ -2,33 +2,45 @@ import { useEffect, useLayoutEffect, useState } from 'react'
 import './PageRevealOverlay.css'
 
 const COLS = 25
-const SPREAD_SECONDS = 1.8
 const TILE_DURATION_SECONDS = 0.8
+const LEVEL_FOUR_START_PROGRESS = 0.95
 const REVEAL_START_DELAY_MS = 500
-const TOTAL_LIFETIME_MS =
-  REVEAL_START_DELAY_MS + (SPREAD_SECONDS + TILE_DURATION_SECONDS) * 1000 + 100
 
-/**
- * Full-viewport, one-time intro curtain. Covers the entire app -
- * navbar included - as a single solid-color plane on mount, then
- * peels away tile-by-tile in an expanding circular ripple from the
- * center to reveal the real page underneath.
- *
- * Grid sizing: columns are fixed at 25. Row count is *derived*, not
- * fixed, so tiles stay square on any screen size instead of stretching
- * into rectangles:
- *   1. tileWidth = viewport width / 25
- *   2. rows = round(viewport height / tileWidth)
- * This is computed once at mount via useLayoutEffect (runs before the
- * browser paints, so there's no visible flash of the wrong grid) - not
- * recalculated on window resize, since resizing mid-animation would
- * visibly jump the grid; it's a ~3 second intro, not a persistent layout.
- */
-function getTileDelay(r, c, centerR, centerC, maxDist) {
-  const dx = c - centerC
-  const dy = r - centerR
-  const dist = Math.sqrt(dx * dx + dy * dy)
-  return (dist / maxDist) * SPREAD_SECONDS
+function getStartBounds(rows, cols) {
+  const centerRows = rows % 2 === 0 ? 2 : 1
+  const centerCols = cols % 2 === 0 ? 2 : 1
+  const hasTwoByTwoCenter = centerRows === 2 && centerCols === 2
+
+  // 1x1 -> 3x3, 1x2 -> 3x4, 2x1 -> 4x3. A true 2x2 starts as 2x2.
+  const height = hasTwoByTwoCenter ? 2 : centerRows + 2
+  const width = hasTwoByTwoCenter ? 2 : centerCols + 2
+  const top = Math.floor((rows - height) / 2)
+  const left = Math.floor((cols - width) / 2)
+
+  return { top, bottom: top + height - 1, left, right: left + width - 1 }
+}
+
+function isInStartGroup(r, c, bounds) {
+  return r >= bounds.top && r <= bounds.bottom && c >= bounds.left && c <= bounds.right
+}
+
+function getTileDelay(r, c, bounds, centerR, centerC) {
+  if (isInStartGroup(r, c, bounds)) return 0
+
+  // The expanding wave is continuous: every later tile is delayed by its exact
+  // Euclidean distance from the grid's original center. This creates the round
+  // pixel wave from the reference rather than discrete square-shaped rings.
+  const radius = Math.hypot(r - centerR, c - centerC)
+  const delayPerRadius = (TILE_DURATION_SECONDS * LEVEL_FOUR_START_PROGRESS) / 3
+  return Math.max(0, radius - 1) * delayPerRadius
+}
+
+function getTotalLifetimeMs(rows) {
+  const bounds = getStartBounds(rows, COLS)
+  const centerR = (rows - 1) / 2
+  const centerC = (COLS - 1) / 2
+  const finalDelay = getTileDelay(0, 0, bounds, centerR, centerC)
+  return REVEAL_START_DELAY_MS + (finalDelay + TILE_DURATION_SECONDS) * 1000 + 100
 }
 
 export default function PageRevealOverlay() {
@@ -44,8 +56,10 @@ export default function PageRevealOverlay() {
 
   useEffect(() => {
     if (rows == null) return
+
     const revealTimer = setTimeout(() => setIsRevealed(true), REVEAL_START_DELAY_MS)
-    const doneTimer = setTimeout(() => setIsDone(true), TOTAL_LIFETIME_MS)
+    const doneTimer = setTimeout(() => setIsDone(true), getTotalLifetimeMs(rows))
+
     return () => {
       clearTimeout(revealTimer)
       clearTimeout(doneTimer)
@@ -54,9 +68,9 @@ export default function PageRevealOverlay() {
 
   if (isDone || rows == null) return null
 
+  const startBounds = getStartBounds(rows, COLS)
   const centerR = (rows - 1) / 2
   const centerC = (COLS - 1) / 2
-  const maxDist = Math.sqrt(centerC * centerC + centerR * centerR)
 
   return (
     <div
@@ -69,7 +83,7 @@ export default function PageRevealOverlay() {
           <div
             key={`${r}-${c}`}
             className="page-reveal__tile"
-            style={{ transitionDelay: `${getTileDelay(r, c, centerR, centerC, maxDist)}s` }}
+            style={{ transitionDelay: `${getTileDelay(r, c, startBounds, centerR, centerC)}s` }}
           />
         ))
       )}
