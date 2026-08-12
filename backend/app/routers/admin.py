@@ -2,27 +2,34 @@
 routers/admin.py
 ------------------------------------------------------------------
 Password-protected admin routes:
-  - login/logout
-  - preview a product (fetch + suggest tags, nothing saved yet)
-  - confirm a product (save to DB with final admin-edited tags)
+  - login / logout
+  - preview a product (fetch + suggest tags + AI blurb, no DB write)
+  - bulk preview  (batch version of preview)
+  - confirm a product (save to DB)
   - list / update / delete existing products
+  - track-click  (increment click_count)
+  - analytics  (top products by views + clicks)
 ------------------------------------------------------------------
 """
 
+import logging
 from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.ai_client import generate_product_blurb
+from app.ai_client import embed_text, generate_product_blurb
 from app.asin_utils import extract_asin
 from app.auth import issue_token, require_admin, verify_password
 from app.database import get_db
 from app.models import Product, Tag
 from app.providers import get_provider
 from app.schemas import (
+    BulkPreviewRequest,
+    BulkPreviewResult,
     LoginRequest,
+    ProductAnalyticsOut,
     ProductConfirmRequest,
     ProductOut,
     ProductPreviewData,
@@ -33,6 +40,7 @@ from app.schemas import (
 )
 from app.tag_extractor import extract_tags
 
+logger = logging.getLogger("admin")
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
@@ -55,25 +63,20 @@ def admin_login(payload: LoginRequest):
 
 @router.post("/logout")
 def admin_logout(_admin=Depends(require_admin)):
-    # Tokens are stateless (signed, not stored server-side), so there's
-    # nothing to invalidate here - the frontend just discards its copy.
-    # Kept as a route for symmetry and in case a blocklist is added later.
     return {"status": "ok"}
 
 
 # ------------------------------------------------------------------
-# Preview (no DB write)
+# Shared preview helper (used by single + bulk preview)
 # ------------------------------------------------------------------
-@router.post("/products/preview", response_model=ProductPreviewResponse)
-def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin)):
-    asin = extract_asin(payload.url)
+def _run_preview(url: str) -> ProductPreviewResponse:
+    """Runs the full preview pipeline for one URL. Raises HTTPException on failure."""
+    asin = extract_asin(url)
     if not asin:
         hint = (
             " This looks like a shortened Amazon link that couldn't be resolved "
-            "automatically (Amazon sometimes blocks this). Open the link in your "
-            "browser, copy the full product URL from the address bar (containing "
-            "/dp/...), and paste that instead."
-            if "amzn.in" in payload.url or "amzn.to" in payload.url or "a.co" in payload.url
+            "automatically. Paste the full /dp/ URL instead."
+            if any(d in url for d in ("amzn.in", "amzn.to", "a.co"))
             else ""
         )
         raise HTTPException(
@@ -85,7 +88,7 @@ def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin
     if data is None or not data.fetch_succeeded:
         raise HTTPException(
             status_code=502,
-            detail="Failed to fetch product data from Amazon. Check the link or try again shortly.",
+            detail="Failed to fetch product data from Amazon. Check the link or try again.",
         )
 
     suggested = extract_tags(data.title, data.features, data.price_amount)
@@ -94,7 +97,7 @@ def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin
 
     product_data = ProductPreviewData(
         asin=data.asin,
-        original_url=payload.url,
+        original_url=url,
         title=data.title,
         price_display=data.price_display,
         price_amount=data.price_amount,
@@ -116,6 +119,54 @@ def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin
 
 
 # ------------------------------------------------------------------
+# Single preview
+# ------------------------------------------------------------------
+@router.post("/products/preview", response_model=ProductPreviewResponse)
+def preview_product(payload: ProductPreviewRequest, _admin=Depends(require_admin)):
+    return _run_preview(payload.url)
+
+
+# ------------------------------------------------------------------
+# Bulk preview
+# ------------------------------------------------------------------
+@router.post("/products/bulk-preview", response_model=List[BulkPreviewResult])
+def bulk_preview_products(
+    payload: BulkPreviewRequest,
+    _admin=Depends(require_admin),
+):
+    """
+    Preview up to 20 Amazon URLs in one request.
+    Each URL is processed independently — one failure doesn't block the rest.
+    Returns a list of per-URL results (success or error).
+    """
+    if len(payload.urls) > 20:
+        raise HTTPException(status_code=400, detail="Maximum 20 URLs per bulk request.")
+
+    results: List[BulkPreviewResult] = []
+    for url in payload.urls:
+        url = url.strip()
+        if not url:
+            continue
+        try:
+            preview = _run_preview(url)
+            results.append(
+                BulkPreviewResult(
+                    url=url,
+                    success=True,
+                    product=preview.product,
+                    suggested_tags=preview.suggested_tags,
+                )
+            )
+        except HTTPException as exc:
+            results.append(BulkPreviewResult(url=url, success=False, error=exc.detail))
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Bulk preview error for %s: %s", url, exc)
+            results.append(BulkPreviewResult(url=url, success=False, error="Unexpected error."))
+
+    return results
+
+
+# ------------------------------------------------------------------
 # Confirm (DB write)
 # ------------------------------------------------------------------
 def _get_or_create_tag(db: Session, name: str, tag_type: str) -> Tag:
@@ -123,7 +174,7 @@ def _get_or_create_tag(db: Session, name: str, tag_type: str) -> Tag:
     if tag is None:
         tag = Tag(name=name, tag_type=tag_type)
         db.add(tag)
-        db.flush()  # so tag.id is available before commit
+        db.flush()
     return tag
 
 
@@ -154,10 +205,10 @@ def confirm_product(
         ai_blurb=payload.product.ai_blurb,
     )
 
-    seen_tag_names = set()
+    seen_tag_names: set = set()
     for tag_in in payload.final_tags:
         if tag_in.name in seen_tag_names:
-            continue  # skip duplicate tag names (e.g. same value suggested under two tag_types)
+            continue
         seen_tag_names.add(tag_in.name)
         tag = _get_or_create_tag(db, tag_in.name, tag_in.tag_type)
         product.tags.append(tag)
@@ -165,6 +216,22 @@ def confirm_product(
     db.add(product)
     db.commit()
     db.refresh(product)
+
+    # Generate and store embedding for semantic search (fail-soft).
+    # Only attempted when pgvector is available and the column exists in the DB.
+    if getattr(product.__class__, 'embedding', None) is not None:
+        embed_parts = [product.title or ""]
+        if product.features:
+            embed_parts.extend(product.features)
+        embedding_vector = embed_text(" ".join(filter(None, embed_parts)))
+        if embedding_vector is not None:
+            try:
+                product.embedding = embedding_vector
+                db.commit()
+                db.refresh(product)
+            except Exception:  # noqa: BLE001
+                db.rollback()
+
     return product
 
 
@@ -193,16 +260,63 @@ def update_product(
     if payload.is_active is not None:
         product.is_active = payload.is_active
 
+    if payload.tags is not None:
+        product.tags.clear()
+        seen_tag_names: set = set()
+        for tag_in in payload.tags:
+            if tag_in.name in seen_tag_names:
+                continue
+            seen_tag_names.add(tag_in.name)
+            tag = _get_or_create_tag(db, tag_in.name, tag_in.tag_type)
+            product.tags.append(tag)
+
     db.commit()
     db.refresh(product)
     return product
 
 
 @router.delete("/products/{product_id}")
-def delete_product(product_id: str, db: Session = Depends(get_db), _admin=Depends(require_admin)):
+def delete_product(
+    product_id: str,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_admin),
+):
     product = db.query(Product).filter(Product.id == _parse_product_id(product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found.")
     db.delete(product)
     db.commit()
     return {"status": "deleted"}
+
+
+# ------------------------------------------------------------------
+# Analytics: click tracking + stats
+# ------------------------------------------------------------------
+@router.post("/products/{asin}/track-click")
+def track_click(asin: str, db: Session = Depends(get_db)):
+    """
+    Increments click_count for a product. Called by the BuyButton
+    component on every outbound Amazon click. No auth required —
+    it's a fire-and-forget counter, not a privileged action.
+    """
+    product = db.query(Product).filter(Product.asin == asin.upper()).first()
+    if product:
+        product.click_count = (product.click_count or 0) + 1
+        db.commit()
+    return {"status": "ok"}
+
+
+@router.get("/analytics", response_model=List[ProductAnalyticsOut])
+def get_analytics(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_admin),
+):
+    """Top products by combined views + clicks, for the admin dashboard."""
+    products = (
+        db.query(Product)
+        .order_by((Product.view_count + Product.click_count).desc())
+        .limit(limit)
+        .all()
+    )
+    return products

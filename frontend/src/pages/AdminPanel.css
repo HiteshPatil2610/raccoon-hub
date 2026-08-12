@@ -133,3 +133,208 @@
   padding: 0.3rem 0.7rem;
   border-radius: 6px;
 }
+
+/* --- Inline tag editing --- */
+.admin-panel__edit-tags {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.admin-panel__edit-tags:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.admin-panel__tag-edit-row td {
+  background: var(--surface);
+  padding: 0.75rem 0.6rem;
+}
+
+.admin-panel__tag-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-panel__tag-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-panel__tag-save {
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--success);
+  color: #0e1512;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-panel__tag-cancel {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* ---- Bulk import ---- */
+.admin-panel__bulk {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.admin-panel__bulk-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0.75rem;
+}
+
+.admin-panel__bulk-hint code {
+  background: var(--surface);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.admin-panel__bulk-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.admin-panel__bulk-form textarea {
+  width: 100%;
+  padding: 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.admin-panel__bulk-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.admin-panel__bulk-upload {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-panel__bulk-upload:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.admin-panel__bulk-controls button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #14161a;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-panel__bulk-results {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-panel__bulk-summary {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.admin-panel__bulk-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.admin-panel__bulk-item.is-success {
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.admin-panel__bulk-item.is-error {
+  background: rgba(229, 102, 102, 0.08);
+  border: 1px solid rgba(229, 102, 102, 0.2);
+}
+
+.admin-panel__bulk-status {
+  font-weight: 700;
+  width: 1rem;
+  flex-shrink: 0;
+}
+
+.admin-panel__bulk-title { flex: 1; color: var(--text); }
+.admin-panel__bulk-price { color: var(--accent); font-weight: 600; }
+.admin-panel__bulk-url   { flex: 1; color: var(--text-muted); word-break: break-all; }
+.admin-panel__bulk-error { color: var(--error); font-size: 0.8rem; }
+
+/* ---- Analytics ---- */
+.admin-panel__analytics {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.admin-panel__analytics table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.admin-panel__analytics th,
+.admin-panel__analytics td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.admin-panel__analytics th {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.admin-panel__analytics-title {
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-panel__analytics-loading {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 1rem 0;
+}

@@ -35,6 +35,7 @@ class TagOut(BaseModel):
 
     name: str
     tag_type: str
+    product_count: Optional[int] = None  # populated by /tags endpoint
 
 
 # ------------------------------------------------------------------
@@ -78,6 +79,7 @@ class ProductConfirmRequest(BaseModel):
 class ProductUpdateRequest(BaseModel):
     category: Optional[str] = None
     is_active: Optional[bool] = None
+    tags: Optional[List[TagSuggestion]] = None  # if provided, replaces all existing tags
 
 
 # ------------------------------------------------------------------
@@ -105,3 +107,54 @@ class ProductOut(BaseModel):
 
 class ProductDetailOut(ProductOut):
     original_url: str
+
+
+# ------------------------------------------------------------------
+# Price History
+# ------------------------------------------------------------------
+class PriceHistoryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    price_amount: float
+    price_display: Optional[str] = None
+    recorded_at: str  # ISO string, serialised in the route
+
+
+# ------------------------------------------------------------------
+# Analytics
+# ------------------------------------------------------------------
+class ProductAnalyticsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    asin: str
+    title: Optional[str] = None
+    view_count: int = 0
+    click_count: int = 0
+
+
+# ------------------------------------------------------------------
+# Bulk import
+# ------------------------------------------------------------------
+class BulkPreviewRequest(BaseModel):
+    urls: List[str]
+
+
+class BulkPreviewResult(BaseModel):
+    url: str
+    success: bool
+    product: Optional[ProductPreviewData] = None
+    suggested_tags: Optional[List[TagSuggestion]] = None
+    error: Optional[str] = None
+
+
+# ------------------------------------------------------------------
+# Similar products
+# ------------------------------------------------------------------
+class SimilarProductOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    asin: str
+    title: Optional[str] = None
+    price_display: Optional[str] = None
+    image_large_url: Optional[str] = None
+    category: Optional[str] = None
