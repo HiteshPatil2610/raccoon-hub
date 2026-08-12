@@ -89,6 +89,26 @@ export const api = {
     const qs = new URLSearchParams(params).toString()
     return request(`/products${qs ? `?${qs}` : ''}`)
   },
+  countProducts: (params = {}) => {
+    const qs = new URLSearchParams(params).toString()
+    return request(`/products/count${qs ? `?${qs}` : ''}`)
+  },
   getProduct: (asin) => request(`/products/${asin}`),
+  getPriceHistory: (asin) => request(`/products/${asin}/price-history`),
+  getSimilarProducts: (asin) => request(`/products/${asin}/similar`),
   listTags: () => request('/tags'),
+
+  // --- Analytics (public click tracking) ---
+  trackClick: (asin) =>
+    request(`/admin/products/${asin}/track-click`, { method: 'POST' }).catch(() => {}),
+
+  // --- Admin analytics ---
+  getAnalytics: () => request('/admin/analytics'),
+
+  // --- Bulk import ---
+  bulkPreviewProducts: (urls) =>
+    request('/admin/products/bulk-preview', {
+      method: 'POST',
+      body: JSON.stringify({ urls }),
+    }),
 }
