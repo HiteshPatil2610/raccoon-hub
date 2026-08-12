@@ -54,9 +54,9 @@ export default function ProductCard({ product, isExpanded, onToggleExpand }) {
     setIsLiked(nextLiked)
   }
 
-  const inStock =
-    (product.availability || '').toLowerCase().includes('stock') &&
-    !(product.availability || '').toLowerCase().includes('out of')
+  const availStr = (product.availability || '').toLowerCase()
+  const inStock = availStr.includes('stock') && !availStr.includes('out of')
+  const isOutOfStock = availStr.includes('out of stock') || availStr === 'out of stock'
 
   return (
     <motion.div
@@ -67,7 +67,7 @@ export default function ProductCard({ product, isExpanded, onToggleExpand }) {
       }}
       className={`product-card ${
         isExpanded ? 'is-expanded' : isShrinking ? 'is-shrinking' : ''
-      }`}
+      }${isOutOfStock ? ' is-out-of-stock' : ''}`}
     >
       <div className="product-card__sheen" />
 
@@ -183,6 +183,10 @@ export default function ProductCard({ product, isExpanded, onToggleExpand }) {
                 <div className="product-card__image-placeholder">No image</div>
               )}
             </div>
+
+            {isOutOfStock && (
+              <div className="product-card__oos-badge">Out of Stock</div>
+            )}
 
             <div className="product-card__overlay" />
 

@@ -441,3 +441,30 @@
 .product-card__full-page-link:hover {
   color: var(--accent);
 }
+
+/* ============================================================
+   OUT-OF-STOCK TREATMENT
+   ============================================================ */
+.product-card.is-out-of-stock:not(.is-expanded) {
+  opacity: 0.6;
+}
+
+.product-card.is-out-of-stock:not(.is-expanded) .product-card__image-wrap img {
+  filter: grayscale(60%);
+}
+
+.product-card__oos-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 6;
+  background: rgba(229, 57, 53, 0.88);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
