@@ -9,18 +9,27 @@ Swagger UI (test every endpoint from the browser): /docs
 ------------------------------------------------------------------
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import admin, public
+from app.scheduler import start_scheduler, stop_scheduler
 
-app = FastAPI(title="Raccoon Hub API", version="0.1.0")
 
-# CORS - admin auth is a Bearer token in the Authorization header (see
-# app/auth.py), not a cookie, so allow_credentials doesn't need to be True
-# here. Still restricting to explicit origins rather than "*" as good
-# practice, even though it's no longer strictly required for auth to work.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Start background jobs on startup; stop them on shutdown."""
+    start_scheduler()
+    yield
+    stop_scheduler()
+
+
+app = FastAPI(title="Raccoon Hub API", version="0.2.0", lifespan=lifespan)
+
+# CORS — Bearer token auth, not cookies, so allow_credentials stays False.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
