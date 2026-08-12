@@ -257,3 +257,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+CHANGELOG.md
+PROJECT_OVERVIEW.md
